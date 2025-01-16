@@ -41,10 +41,11 @@ var defaultTokenGetter = func(c *gin.Context) string {
 
 // Options stores configurations for a CSRF middleware.
 type Options struct {
-	Secret        string
-	IgnoreMethods []string
-	ErrorFunc     gin.HandlerFunc
-	TokenGetter   func(c *gin.Context) string
+	Secret          string
+	IgnoreMethods   []string
+	IgnoreFullPaths []string
+	ErrorFunc       gin.HandlerFunc
+	TokenGetter     func(c *gin.Context) string
 }
 
 func tokenize(secret, salt string) string {
@@ -90,7 +91,7 @@ func Middleware(options Options) gin.HandlerFunc {
 		session := sessions.Default(c)
 		c.Set(csrfSecret, options.Secret)
 
-		if inArray(ignoreMethods, c.Request.Method) {
+		if inArray(ignoreMethods, c.Request.Method) || inArray(options.IgnoreFullPaths, c.FullPath()) {
 			c.Next()
 			return
 		}
